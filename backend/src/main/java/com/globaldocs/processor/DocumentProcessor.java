@@ -77,13 +77,21 @@ public abstract class DocumentProcessor {
     /** Reglas de validación específicas del país y del tipo de documento. */
     protected abstract void validateCountryRules(DocumentRequest request);
 
-    /** Simula la extracción/lectura del contenido del documento ya validado. */
+    /** Construye el resumen final a partir del texto ya extraído del archivo real. */
     protected String extractContent(DocumentRequest request) {
-        if (request.getContent() != null && request.getContent().toUpperCase().contains("ERROR")) {
-            throw new DocumentProcessingException("El motor de extracción encontró contenido corrupto o ilegible");
+        String content = request.getContent();
+        if (content == null || content.isBlank()) {
+            throw new DocumentProcessingException(
+                    "El documento '" + request.getFileName() + "' no contiene texto extraíble (archivo vacío o corrupto)");
+        }
+        int wordCount = content.trim().split("\\s+").length;
+        String preview = content.strip().replaceAll("\\s+", " ");
+        if (preview.length() > 220) {
+            preview = preview.substring(0, 220) + "…";
         }
         return "Documento '" + request.getFileName() + "' procesado correctamente para "
-                + getCountry().getDisplayName() + " (" + request.getDocumentType().getDisplayName() + ")";
+                + getCountry().getDisplayName() + " (" + request.getDocumentType().getDisplayName() + "). "
+                + wordCount + " palabras extraídas. Vista previa: " + preview;
     }
 
     public abstract Country getCountry();

@@ -1,6 +1,5 @@
 package com.globaldocs.model;
 
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
 import java.util.HashMap;
@@ -8,15 +7,15 @@ import java.util.Map;
 import java.util.UUID;
 
 /**
- * Representa un documento a procesar. El contenido real del archivo no se
- * transporta en este taller; en su lugar "fields" simula los metadatos
- * regulatorios que un parser real extraería (NIT, RFC, CUIT, RUT, etc.).
+ * Metadatos de un documento a procesar. El archivo real se sube por separado
+ * (multipart) y el servidor completa fileName/content a partir de él; "fields"
+ * transporta los metadatos regulatorios que el emisor declara (NIT, RFC, CUIT,
+ * RUT, etc.), que luego cada país valida contra sus propias reglas.
  */
 public class DocumentRequest {
 
     private String id = UUID.randomUUID().toString();
 
-    @NotBlank
     private String fileName;
 
     @NotNull

@@ -31,7 +31,7 @@ export default function QueueTable({ queue, onRemove, onProcess, onClear, proces
           <tbody>
             {queue.map((doc, idx) => (
               <tr key={idx}>
-                <td>{doc.fileName}</td>
+                <td>{doc.file.name}</td>
                 <td>
                   {COUNTRY_LABEL[doc.country]?.flag} {COUNTRY_LABEL[doc.country]?.label}
                 </td>

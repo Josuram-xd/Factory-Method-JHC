@@ -36,6 +36,7 @@ class FactoryMethodTest {
         request.setCountry(Country.COLOMBIA);
         request.setDocumentType(DocumentType.FACTURA_ELECTRONICA);
         request.setFormat(DocumentFormat.PDF);
+        request.setContent("Factura electrónica de prueba con contenido extraído del PDF.");
         request.setFields(Map.of(
                 "nit", "900123456-7",
                 "cufe", "a".repeat(96)

@@ -4,6 +4,10 @@ server:
 spring:
   application:
     name: globaldocs-solutions
+  servlet:
+    multipart:
+      max-file-size: 20MB
+      max-request-size: 100MB
 
 logging:
   level:

@@ -9,11 +9,28 @@ async function handle(response) {
   return data
 }
 
-export async function processBatch(documents) {
+function toMetadata(doc) {
+  return {
+    fileName: doc.file.name,
+    country: doc.country,
+    documentType: doc.documentType,
+    format: doc.format,
+    fields: doc.fields,
+  }
+}
+
+function jsonPart(value) {
+  return new Blob([JSON.stringify(value)], { type: 'application/json' })
+}
+
+export async function processBatch(queue) {
+  const formData = new FormData()
+  queue.forEach((doc) => formData.append('files', doc.file, doc.file.name))
+  formData.append('metadataList', jsonPart(queue.map(toMetadata)))
+
   const response = await fetch(`${BASE_URL}/batch`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(documents),
+    body: formData,
   })
   return handle(response)
 }

@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { ALLOWED_FORMATS, COUNTRIES, COUNTRY_FIELDS, DOCUMENT_TYPES } from '../config/documentConfig'
 
 const emptyFields = (country, docType) => {
@@ -6,16 +6,22 @@ const emptyFields = (country, docType) => {
   return Object.fromEntries(defs.map((f) => [f.key, '']))
 }
 
+function extensionOf(fileName) {
+  const dot = fileName.lastIndexOf('.')
+  return dot >= 0 ? fileName.slice(dot + 1).toUpperCase() : null
+}
+
 export default function DocumentForm({ onAdd }) {
   const [country, setCountry] = useState(COUNTRIES[0].value)
   const [documentType, setDocumentType] = useState(DOCUMENT_TYPES[0].value)
   const [format, setFormat] = useState(ALLOWED_FORMATS[DOCUMENT_TYPES[0].value][0])
-  const [fileName, setFileName] = useState('')
-  const [content, setContent] = useState('')
+  const [file, setFile] = useState(null)
   const [fields, setFields] = useState(emptyFields(COUNTRIES[0].value, DOCUMENT_TYPES[0].value))
+  const fileInputRef = useRef(null)
 
   const fieldDefs = useMemo(() => COUNTRY_FIELDS[country]?.[documentType] || [], [country, documentType])
   const availableFormats = ALLOWED_FORMATS[documentType]
+  const extensionMismatch = file && extensionOf(file.name) !== format
 
   function handleDocumentType(nextType) {
     setDocumentType(nextType)
@@ -28,28 +34,29 @@ export default function DocumentForm({ onAdd }) {
     setFields(emptyFields(nextCountry, documentType))
   }
 
+  function handleFileChange(e) {
+    const selected = e.target.files?.[0] || null
+    setFile(selected)
+    if (selected) {
+      const ext = extensionOf(selected.name)
+      if (ext && availableFormats.includes(ext)) {
+        setFormat(ext)
+      }
+    }
+  }
+
   function handleSubmit(e) {
     e.preventDefault()
-    if (!fileName.trim()) return
-    onAdd({
-      fileName: fileName.trim(),
-      country,
-      documentType,
-      format,
-      content,
-      fields,
-    })
-    setFileName('')
-    setContent('')
+    if (!file) return
+    onAdd({ file, country, documentType, format, fields })
+    setFile(null)
+    if (fileInputRef.current) fileInputRef.current.value = ''
     setFields(emptyFields(country, documentType))
   }
 
-  function fillExample() {
+  function fillExampleFields() {
     const defs = COUNTRY_FIELDS[country]?.[documentType] || []
     setFields(Object.fromEntries(defs.map((f) => [f.key, f.placeholder])))
-    if (!fileName.trim()) {
-      setFileName(`${documentType.toLowerCase()}-ejemplo.${format.toLowerCase()}`)
-    }
   }
 
   return (
@@ -82,7 +89,7 @@ export default function DocumentForm({ onAdd }) {
 
       <div className="field-row">
         <label>
-          Formato
+          Formato declarado
           <select value={format} onChange={(e) => setFormat(e.target.value)}>
             {availableFormats.map((f) => (
               <option key={f} value={f}>
@@ -93,16 +100,23 @@ export default function DocumentForm({ onAdd }) {
         </label>
 
         <label>
-          Nombre de archivo
+          Archivo ({availableFormats.map((f) => `.${f.toLowerCase()}`).join(', ')})
           <input
-            type="text"
-            placeholder={`documento.${format.toLowerCase()}`}
-            value={fileName}
-            onChange={(e) => setFileName(e.target.value)}
+            ref={fileInputRef}
+            type="file"
+            accept={availableFormats.map((f) => `.${f.toLowerCase()}`).join(',')}
+            onChange={handleFileChange}
             required
           />
         </label>
       </div>
+
+      {extensionMismatch && (
+        <p className="warning-hint">
+          La extensión del archivo ({extensionOf(file.name)}) no coincide con el formato declarado ({format}) — el
+          servidor rechazará el documento por esta inconsistencia.
+        </p>
+      )}
 
       {fieldDefs.length > 0 && (
         <fieldset className="regulatory-fields">
@@ -121,16 +135,11 @@ export default function DocumentForm({ onAdd }) {
         </fieldset>
       )}
 
-      <label>
-        Contenido / notas (opcional — escribe "ERROR" para simular un fallo de procesamiento)
-        <textarea rows={2} value={content} onChange={(e) => setContent(e.target.value)} />
-      </label>
-
       <div className="form-actions">
-        <button type="button" className="ghost" onClick={fillExample}>
-          Rellenar ejemplo válido
+        <button type="button" className="ghost" onClick={fillExampleFields}>
+          Rellenar campos de ejemplo
         </button>
-        <button type="submit" className="primary">
+        <button type="submit" className="primary" disabled={!file}>
           Agregar a la cola
         </button>
       </div>

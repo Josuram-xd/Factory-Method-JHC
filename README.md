@@ -15,7 +15,8 @@ backend/src/main/java/com/globaldocs/
 ├── model/        Country, DocumentType, DocumentFormat, DocumentRequest, ProcessingResult, BatchResult...
 ├── processor/    DocumentProcessor (Product abstracto, template method) + 4 implementaciones por país
 ├── factory/      DocumentProcessorFactory (Creator abstracto) + 4 fábricas + registro (Provider)
-├── service/      BatchProcessingService (procesamiento por lotes, aislando errores por documento)
+├── extraction/   ContentExtractor por formato (PDF/XLSX/DOC/TXT-MD-CSV) + registro (Strategy)
+├── service/      BatchProcessingService (lee el archivo real, extrae texto y delega en el Factory Method)
 ├── exception/    Excepciones de dominio + manejador global de errores (@RestControllerAdvice)
 └── controller/   API REST (DocumentController)
 ```
@@ -32,12 +33,14 @@ backend/src/main/java/com/globaldocs/
   `DocumentValidationException` (dato inválido) o `DocumentProcessingException` (fallo de
   extracción) no interrumpe el resto del lote; se reporta como `VALIDATION_ERROR` o
   `PROCESSING_ERROR` en el resultado.
-- **Procesamiento por lotes**: `POST /api/documents/batch` recibe un arreglo de documentos y
-  devuelve un `BatchResult` con totales, éxitos/fallos y desglose por país y tipo de documento.
-
-> Nota de alcance: para fines del taller, el contenido real del archivo (.pdf/.doc/.md/.csv/.txt/.xlsx)
-> no se parsea en binario — se simula con un mapa `fields` de metadatos regulatorios (NIT, RFC, CUIT,
-> RUT, CUFE, CAE, etc.) que un integrador real extraería del documento.
+- **Procesamiento por lotes**: `POST /api/documents/batch` recibe archivos reales y sus metadatos,
+  y devuelve un `BatchResult` con totales, éxitos/fallos y desglose por país y tipo de documento.
+- **Extracción real de contenido** (`extraction/`, patrón Strategy): cada formato tiene su propio
+  extractor — `PdfContentExtractor` (Apache PDFBox), `ExcelContentExtractor` (.xlsx, Apache POI),
+  `WordContentExtractor` (.doc binario, Apache POI HWPF) y `PlainTextContentExtractor`
+  (.txt/.md/.csv). `ContentExtractorRegistry` los indexa por `DocumentFormat`, igual que el
+  `DocumentProcessorFactoryProvider` indexa las fábricas por país. El servicio valida que la
+  extensión real del archivo coincida con el formato declarado antes de extraer.
 
 ## Backend (Java 17 + Spring Boot 3)
 
@@ -47,13 +50,21 @@ mvn spring-boot:run       # http://localhost:8080
 mvn test                  # pruebas unitarias del Factory Method
 ```
 
-Endpoints:
+Endpoints (todos `multipart/form-data`, salvo `/metadata`):
 
-| Método | Ruta                       | Descripción                                  |
-|--------|----------------------------|-----------------------------------------------|
-| POST   | `/api/documents/process`   | Procesa un documento individual                |
-| POST   | `/api/documents/batch`     | Procesa un lote de documentos                  |
-| GET    | `/api/documents/metadata`  | Lista países, tipos de documento y formatos    |
+| Método | Ruta                       | Partes del request                                              |
+|--------|----------------------------|-------------------------------------------------------------------|
+| POST   | `/api/documents/process`   | `file` (el archivo) + `metadata` (JSON: country, documentType, format, fields) |
+| POST   | `/api/documents/batch`     | `files` (uno o más archivos) + `metadataList` (JSON, arreglo pareado por orden) |
+| GET    | `/api/documents/metadata`  | — Lista países, tipos de documento y formatos                      |
+
+Ejemplo con `curl`:
+
+```bash
+curl -X POST http://localhost:8080/api/documents/batch \
+  -F "files=@factura.csv;type=text/csv" \
+  -F 'metadataList=[{"country":"COLOMBIA","documentType":"FACTURA_ELECTRONICA","format":"CSV","fields":{"nit":"900123456-7","cufe":"'"$(printf 'a%.0s' {1..96})"'"}}];type=application/json'
+```
 
 ## Frontend (React + Vite)
 

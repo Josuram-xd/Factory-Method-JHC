@@ -8,12 +8,14 @@ import com.globaldocs.model.DocumentType;
 import com.globaldocs.model.ProcessingResult;
 import com.globaldocs.service.BatchProcessingService;
 import jakarta.validation.Valid;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Map;
@@ -29,14 +31,16 @@ public class DocumentController {
         this.batchProcessingService = batchProcessingService;
     }
 
-    @PostMapping("/process")
-    public ProcessingResult processOne(@Valid @RequestBody DocumentRequest request) {
-        return batchProcessingService.processOne(request);
+    @PostMapping(value = "/process", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ProcessingResult processOne(@RequestPart("file") MultipartFile file,
+                                        @RequestPart("metadata") @Valid DocumentRequest metadata) {
+        return batchProcessingService.processOne(file, metadata);
     }
 
-    @PostMapping("/batch")
-    public BatchResult processBatch(@Valid @RequestBody List<DocumentRequest> requests) {
-        return batchProcessingService.processBatch(requests);
+    @PostMapping(value = "/batch", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public BatchResult processBatch(@RequestPart("files") List<MultipartFile> files,
+                                     @RequestPart("metadataList") List<DocumentRequest> metadataList) {
+        return batchProcessingService.processBatch(files, metadataList);
     }
 
     @GetMapping("/metadata")
