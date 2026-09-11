@@ -206,6 +206,25 @@ td {
   color: var(--error);
 }
 
+.country-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.country-dot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 16px;
+  border-radius: 4px;
+  font-size: 0.6rem;
+  font-weight: 700;
+  color: #10141c;
+  letter-spacing: 0.02em;
+}
+
 .warning-hint {
   background: rgba(251, 191, 36, 0.12);
   border: 1px solid rgba(251, 191, 36, 0.4);

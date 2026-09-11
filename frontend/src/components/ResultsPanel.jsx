@@ -1,4 +1,5 @@
-import { COUNTRY_LABEL, DOCUMENT_TYPE_LABEL } from '../config/documentConfig'
+import { DOCUMENT_TYPE_LABEL } from '../config/documentConfig'
+import CountryTag from './CountryTag'
 
 const STATUS_META = {
   SUCCESS: { label: 'Éxito', className: 'badge success' },
@@ -38,7 +39,7 @@ export default function ResultsPanel({ results, error }) {
               <tr key={r.documentId}>
                 <td>{r.fileName}</td>
                 <td>
-                  {COUNTRY_LABEL[r.country]?.flag} {COUNTRY_LABEL[r.country]?.label}
+                  <CountryTag country={r.country} />
                 </td>
                 <td>{DOCUMENT_TYPE_LABEL[r.documentType]}</td>
                 <td>

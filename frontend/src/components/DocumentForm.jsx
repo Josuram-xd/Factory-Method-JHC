@@ -69,7 +69,7 @@ export default function DocumentForm({ onAdd }) {
           <select value={country} onChange={(e) => handleCountry(e.target.value)}>
             {COUNTRIES.map((c) => (
               <option key={c.value} value={c.value}>
-                {c.flag} {c.label}
+                {c.label}
               </option>
             ))}
           </select>

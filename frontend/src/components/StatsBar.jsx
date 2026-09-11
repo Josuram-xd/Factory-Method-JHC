@@ -1,4 +1,4 @@
-import { COUNTRY_LABEL } from '../config/documentConfig'
+import CountryTag from './CountryTag'
 
 export default function StatsBar({ batch }) {
   if (!batch) return null
@@ -33,7 +33,7 @@ export default function StatsBar({ batch }) {
           {Object.entries(batch.byCountry).map(([country, count]) => (
             <div className="bar-row" key={country}>
               <span className="bar-label">
-                {COUNTRY_LABEL[country]?.flag} {COUNTRY_LABEL[country]?.label}
+                <CountryTag country={country} />
               </span>
               <div className="bar-track">
                 <div className="bar-fill" style={{ width: `${(count / batch.total) * 100}%` }} />

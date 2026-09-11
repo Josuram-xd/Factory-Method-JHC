@@ -1,8 +1,8 @@
 export const COUNTRIES = [
-  { value: 'COLOMBIA', label: 'Colombia', flag: '🇨🇴' },
-  { value: 'MEXICO', label: 'México', flag: '🇲🇽' },
-  { value: 'ARGENTINA', label: 'Argentina', flag: '🇦🇷' },
-  { value: 'CHILE', label: 'Chile', flag: '🇨🇱' },
+  { value: 'COLOMBIA', label: 'Colombia', code: 'CO', color: '#f5c542' },
+  { value: 'MEXICO', label: 'México', code: 'MX', color: '#2fae66' },
+  { value: 'ARGENTINA', label: 'Argentina', code: 'AR', color: '#5fb3e8' },
+  { value: 'CHILE', label: 'Chile', code: 'CL', color: '#e5484d' },
 ]
 
 export const DOCUMENT_TYPES = [

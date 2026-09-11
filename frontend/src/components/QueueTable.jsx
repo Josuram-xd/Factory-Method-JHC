@@ -1,4 +1,5 @@
-import { COUNTRY_LABEL, DOCUMENT_TYPE_LABEL } from '../config/documentConfig'
+import { DOCUMENT_TYPE_LABEL } from '../config/documentConfig'
+import CountryTag from './CountryTag'
 
 export default function QueueTable({ queue, onRemove, onProcess, onClear, processing }) {
   return (
@@ -33,7 +34,7 @@ export default function QueueTable({ queue, onRemove, onProcess, onClear, proces
               <tr key={idx}>
                 <td>{doc.file.name}</td>
                 <td>
-                  {COUNTRY_LABEL[doc.country]?.flag} {COUNTRY_LABEL[doc.country]?.label}
+                  <CountryTag country={doc.country} />
                 </td>
                 <td>{DOCUMENT_TYPE_LABEL[doc.documentType]}</td>
                 <td>.{doc.format.toLowerCase()}</td>
